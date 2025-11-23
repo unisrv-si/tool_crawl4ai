@@ -1,6 +1,8 @@
 # Case01: Crawl a website and save the result to a file
 import asyncio
 import os
+import re
+import time
 from crawl4ai import CrawlerRunConfig, AsyncWebCrawler
 from crawl4ai.content_scraping_strategy import LXMLWebScrapingStrategy
 from util import url2fname
@@ -23,7 +25,7 @@ config = CrawlerRunConfig(
     # ],
     # Exclude elements such as #header like <div id="header">...</div>
     # tepco-ep pc用のselectorは除外しsp(スマホ)用のselectorは残す
-    excluded_selector = os.getenv("excluded_selector"),
+    excluded_selector = os.getenv("EXCLUDE_SELECTOR", "#header, .header, #footer, .footer"),
     # Tag exclusions
     excluded_tags=['form', 'header', 'breadcrumbs' , 'footer', 'nav'],
     process_iframes=True,
@@ -83,7 +85,7 @@ def fix_multiline_table_cells(content):
     return '\n'.join(result_lines)
 
 def remove_javascript_void_zero(content: str) -> str:
-    """ Remove 'javascript:void(0);' from the content.
+    """ Remove '(javascript:void(0);)' or '(javascript:void(0))' from the content.
     idやclass属性が指定されていないaタグなどに取得すべき文字列が含まれることがあるため、
     excluded_selectorに指定できない。このためこの関数を用意し除する。
     aタグなどに含まれるケースについては、images/javascript_void_zero.png を参照。
@@ -91,9 +93,8 @@ def remove_javascript_void_zero(content: str) -> str:
     Args:
         content: The markdown content as a string.
     Returns:
-        The modified markdown content without 'javascript:void(0);'."""
-    
-    return content.replace('(javascript:void\(0\);)', '')
+        The modified markdown content without '(javascript:void(0);)' or '(javascript:void(0))' ."""
+    return re.sub(r'\(javascript:void\\\(0\\\);?\)', '', content)
 
 async def crawl(input_file='urls.txt', output_dir='output_crawled'):
     """Crawl the URLs from the input file and save the results to the output directory."""
@@ -155,19 +156,27 @@ async def crawl(input_file='urls.txt', output_dir='output_crawled'):
                     file.write(''.join(result_list))
 
             # 出力ディレクトリ直下へcleaned HTML and JSONを保存
-            with open("{}/{}".format(output_dir, url2fname(url) + ".html"), "w") as file:
-                # file.write(result.cleaned_html)
-                file.write(result.html)
+            if os.getenv("EXCUDE_CLEANED_HTML", "false").lower() == "true":
+                print("Skipping saving cleaned HTML as per EXCUDE_CLEANED_HTML setting.")
+            else:
+                with open("{}/{}".format(output_dir, url2fname(url) + ".html"), "w") as file:
+                    # file.write(result.cleaned_html)
+                    file.write(result.html)
 
-            with open("{}/{}".format(output_dir, url2fname(url) + ".json"), "w", encoding="utf-8") as file:
-                file.write(json.dumps(result_json, indent=2, ensure_ascii=False))
+            if os.getenv("EXCUDE_JSON", "false").lower() == "true":
+                print("Skipping saving JSON as per EXCUDE_JSON setting.")
+            else:
+                with open("{}/{}".format(output_dir, url2fname(url) + ".json"), "w", encoding="utf-8") as file:
+                    file.write(json.dumps(result_json, indent=2, ensure_ascii=False))
             
             # Wait for N seconds before processing the next URL
             # This can help prevent overwhelming the target server with too many requests in a short time period.
-            wait_seconds = 1
-            print(f"Waiting {wait_seconds} second(s) before processing next URL...")
-            await asyncio.sleep(wait_seconds)
-            
+            # wait_seconds = 1
+            # print(f"Waiting {wait_seconds} second(s) before processing next URL...")
+            # await asyncio.sleep(wait_seconds)
+        wait_seconds = 1
+        print(f"Waiting {wait_seconds} second(s) before processing next URL...")
+        time.sleep(1)  # Short delay between URLs to be polite to the server    
 
 def main():
     """Main function to handle command line arguments."""
