@@ -57,17 +57,26 @@ excluded_selector="#header, #footer, #side, #nav, .head_wrapper, .widget"
 - メタファイル(.meta)
 - HTML内のテーブルのマークダウンファイル(_unspanned_tables.md)
 
-これらは、データベースへのロード処理にて使用します。Crawl4AIではcolspan, rowspanを含むテーブル(ページ内に複数ある場合を含む)をキレイにマークダウンに生成できません。
-このため、別途、HTML内のテーブル部分のみをpandasで整形してマークダウンに変換したものを出力しています。
-手動になりますが、きれいなマークダウンをコンテンツに含めたい場合は、出力されたマークダウンの当該部分と置換する作業が発生します。
-※ excluded_selectorでテーブルを除外した場合でも、
+マークダウンファイル(.md), メタファイル(.meta)は、データベースへのロード処理にて使用します。
+
+Crawl4AIではcolspan, rowspanを含むテーブル(ページ内に複数ある場合を含む)をキレイにマークダウンに生成できません。
+
+このため、別途、HTML内のテーブル部分のみをpandasで整形してマークダウンに変換したHTML内のテーブルのマークダウンファイル(_unspanned_tables.md)を出力しています。
+
+手動になりますが、きれいなマークダウンをコンテンツに含めたい場合は、出力されたマークダウンの当該部分を統合したり(リンクが含まれているケース)、置換する作業が発生します。
 
 
-その他に出力先ディレクトリ直下には、参考として次のファイルが出力されます。
+
+その他に出力先ディレクトリ直下には、参考として次のファイルが出力されます。環境変数にて出力を抑制できます。(EXCUDE_CLEANED_HTML=false, EXCUDE_JSON=false)
 - clean htmlファイル(.html)
 - jsonファイル(.json)
 
 ```shell
 # Example
 python -m simple_web_crawl tepco-ep_urls.cfg tepco-ep_unstructured_result
+```
+### 6. 整形したマークダウンとメタをカテゴリ毎に出力します。
+md_categorizedに出力されます。
+```shell
+python -m tepco-ep_categorize_md
 ```
