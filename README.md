@@ -75,8 +75,17 @@ Crawl4AIではcolspan, rowspanを含むテーブル(ページ内に複数ある�
 # Example
 python -m simple_web_crawl tepco-ep_urls.cfg tepco-ep_unstructured_result
 ```
-### 6. 整形したマークダウンとメタをカテゴリ毎に出力します。
+### 6. 必要であえば、整形したマークダウンとメタをカテゴリ毎に出力するプログラムを作成し、実行します。
 md_categorizedに出力されます。
+
+neo4j-tepco-epレポジトリ参照
 ```shell
 python -m tepco-ep_categorize_md
+```
+
+### 7. データベースへロードするプログラムを作成し、データをロードおよびベクタライズやインデックスの作成を行います。
+
+neo4j-tepco-epレポジトリ参照
+```shell
+create_nodes("md_categorized/9_electricity_energy_saving_tips", "ElectricityEnergySavingTips", "electricity_energy_saving_tips_index")
 ```
