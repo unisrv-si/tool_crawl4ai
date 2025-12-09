@@ -3,7 +3,12 @@ from setuptools import setup, find_packages
 setup(
     name="tool_crawl4ai",
     version="0.1.0",
-    packages=find_packages(),
+    py_modules=[
+        "util",
+        "simple_web_crawl",
+        "table_unspanner",
+        "test_removing_javascript",
+    ],
     install_requires=[
         "Crawl4AI==0.7.7",
         "python-dotenv==1.2.1",
